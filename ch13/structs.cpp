@@ -6,6 +6,11 @@ struct Employee {
     double wage {};
 };
 
+std::ostream& operator<<(std::ostream& out, const Employee& emp) {
+    out << "ID: " << emp.id << " Age: " << emp.age << " Wage: " << emp.wage;
+    return out;
+}
+
 int main() {
     Employee joe {};
     joe.id = 14;
@@ -31,6 +36,8 @@ int main() {
     frank.wage += 5000.0;
 
     ++joe.age;
+    
+    std::cout << joe << '\n';
     
     return 0;
 }
