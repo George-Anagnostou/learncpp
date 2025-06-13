@@ -4,6 +4,11 @@
 #include <iostream>
 #include "Random.h"
 
+namespace Settings {
+	constexpr int MAXVALUE { 21 };
+	constexpr int MAXDEALER { 17 };
+}
+
 struct Card {
 	enum Rank {
 		rank_ace,
@@ -80,24 +85,111 @@ public:
 	}
 };
 
-int main() {
-	// Print one card
-	Card card { Card::rank_5, Card::suit_heart };
-	std::cout << card << '\n';
-;
-	// Print all cards
-	for (auto suit : Card::allSuits) {
-		for (auto rank : Card::allRanks) {
-			std::cout << Card { rank, suit } << ' ';
+struct Player {
+	int score { 0 };
+	int numAces { 0 };
+
+	Card drawCard(Deck& deck) {
+		Card card { deck.dealCard() };
+		score += card.value();
+
+		if (card.rank == Card::rank_ace) {
+			++numAces;
+		}
+
+		if (score > Settings::MAXVALUE && numAces > 0) {
+			--numAces;
+			score -= 10;
+		}
+
+		return card;
+	}
+};
+
+bool dealerTurn(Player dealer, Deck deck) {
+	while (dealer.score < Settings::MAXDEALER) {
+		Card card { dealer.drawCard(deck) };
+		std::cout << "The dealer flips a " << card << ". ";
+		std::cout << "They now have: " << dealer.score << '\n';
+	}
+
+	if (dealer.score > Settings::MAXVALUE) {
+		std::cout << "The dealer went bust!\n";
+		return true;
+	}
+
+	return false;
+}
+
+bool handleInput() {
+	while (true) {
+		std::cout << "(h) to hit, or (s) to stand: ";
+		char move {};
+		std::cin >> move;
+		switch(move) {
+		case 'h':
+			return true;
+		case 's':
+			return false;
+		default:
+			std::cout << "Invalid input. Try again.\n";
+			continue;
 		}
 	}
-	std::cout << '\n';
+}
 
-	Deck deck{};
-	std::cout << deck.dealCard() << ' ' << deck.dealCard() << ' ' << deck.dealCard() << '\n';
+bool playerTurn(Player player, Deck deck) {
+	bool move { handleInput() };
+	while (move) {
+		Card card { player.drawCard(deck) };
+		std::cout << "You were dealt: " << card << ". ";
+		std::cout << "You now have " << player.score << '\n';
 
+		if (player.score > Settings::MAXVALUE) {
+			std::cout << "You went bust!\n";
+			return false;
+		}
+
+		move = handleInput();
+	}
+
+	return true;
+}
+
+bool playBlackJack() {
+	Deck deck {};
 	deck.shuffle();
-	std::cout << deck.dealCard() << ' ' << deck.dealCard() << ' ' << deck.dealCard() << '\n';
+
+	Player dealer {};
+	Player player {};
+
+	Card dealerCard { dealer.drawCard(deck) };
+	Card playerCard { player.drawCard(deck) };
+
+	std::cout << "The dealer is showing: " << dealerCard << " (" << dealer.score << ")\n";
+	std::cout << "You are showing: " << playerCard << " (" << player.score << ")\n";
+
+	// Player Turn
+	if (!playerTurn(player, deck)) {
+		return false;
+	}
+	
+	// Dealer Turn
+	if (dealerTurn(dealer, deck)) {
+		return true;
+	}
+
+	return (player.score > dealer.score);
+}
+
+int main() {
+	bool status { playBlackJack() };
+
+	if (status) {
+		std::cout << "You win!\n";
+	} else {
+		std::cout << "You lose!\n";
+	}
 
 	return 0;
 }
