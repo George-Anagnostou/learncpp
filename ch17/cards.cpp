@@ -87,10 +87,21 @@ public:
 
 struct Player {
 	int score { 0 };
+	int numAces { 0 };
 
 	Card drawCard(Deck& deck) {
 		Card card { deck.dealCard() };
 		score += card.value();
+
+		if (card.rank == Card::rank_ace) {
+			++numAces;
+		}
+
+		if (score > Settings::MAXVALUE && numAces > 0) {
+			--numAces;
+			score -= 10;
+		}
+
 		return card;
 	}
 };
@@ -106,6 +117,7 @@ bool dealerTurn(Player dealer, Deck deck) {
 		std::cout << "The dealer went bust!\n";
 		return true;
 	}
+
 	return false;
 }
 
@@ -151,11 +163,11 @@ bool playBlackJack() {
 	Player dealer {};
 	Player player {};
 
-	dealer.drawCard(deck);
-	player.drawCard(deck);
+	Card dealerCard { dealer.drawCard(deck) };
+	Card playerCard { player.drawCard(deck) };
 
-	std::cout << "The dealer is showing: " << dealer.score << '\n';
-	std::cout << "You have score: " << player.score << '\n';
+	std::cout << "The dealer is showing: " << dealerCard << " (" << dealer.score << ")\n";
+	std::cout << "You are showing: " << playerCard << " (" << player.score << ")\n";
 
 	// Player Turn
 	if (!playerTurn(player, deck)) {
@@ -171,30 +183,13 @@ bool playBlackJack() {
 }
 
 int main() {
-// 	// Print one card
-// 	Card card { Card::rank_5, Card::suit_heart };
-// 	std::cout << card << '\n';
-// ;
-// 	// Print all cards
-// 	for (auto suit : Card::allSuits) {
-// 		for (auto rank : Card::allRanks) {
-// 			std::cout << Card { rank, suit } << ' ';
-// 		}
-// 	}
-// 	std::cout << '\n';
-//
-// 	Deck deck{};
-// 	std::cout << deck.dealCard() << ' ' << deck.dealCard() << ' ' << deck.dealCard() << '\n';
-//
-// 	deck.shuffle();
-// 	std::cout << deck.dealCard() << ' ' << deck.dealCard() << ' ' << deck.dealCard() << '\n';
-//
-
 	bool status { playBlackJack() };
-	if (status)
+
+	if (status) {
 		std::cout << "You win!\n";
-	else
+	} else {
 		std::cout << "You lose!\n";
+	}
 
 	return 0;
 }
