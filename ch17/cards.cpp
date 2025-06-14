@@ -9,6 +9,12 @@ namespace Settings {
 	constexpr int MAXDEALER { 17 };
 }
 
+enum class EndStates {
+	player_wins,
+	dealer_wins,
+	tie,
+};
+
 struct Card {
 	enum Rank {
 		rank_ace,
@@ -106,6 +112,8 @@ struct Player {
 	}
 };
 
+// returns true if dealer successfully finishes turns
+// returns false if dealer busts
 bool dealerTurn(Player dealer, Deck deck) {
 	while (dealer.score < Settings::MAXDEALER) {
 		Card card { dealer.drawCard(deck) };
@@ -114,11 +122,10 @@ bool dealerTurn(Player dealer, Deck deck) {
 	}
 
 	if (dealer.score > Settings::MAXVALUE) {
-		std::cout << "The dealer went bust!\n";
-		return true;
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 bool handleInput() {
@@ -138,6 +145,8 @@ bool handleInput() {
 	}
 }
 
+// returns true if player successfully finishes turn
+// returns false if player busts
 bool playerTurn(Player player, Deck deck) {
 	bool move { handleInput() };
 	while (move) {
@@ -146,17 +155,15 @@ bool playerTurn(Player player, Deck deck) {
 		std::cout << "You now have " << player.score << '\n';
 
 		if (player.score > Settings::MAXVALUE) {
-			std::cout << "You went bust!\n";
 			return false;
 		}
 
 		move = handleInput();
 	}
-
 	return true;
 }
 
-bool playBlackJack() {
+EndStates playBlackJack() {
 	Deck deck {};
 	deck.shuffle();
 
@@ -169,26 +176,45 @@ bool playBlackJack() {
 	std::cout << "The dealer is showing: " << dealerCard << " (" << dealer.score << ")\n";
 	std::cout << "You are showing: " << playerCard << " (" << player.score << ")\n";
 
-	// Player Turn
 	if (!playerTurn(player, deck)) {
-		return false;
-	}
-	
-	// Dealer Turn
-	if (dealerTurn(dealer, deck)) {
-		return true;
+		std::cout << "You bust!\n";
+		return EndStates::dealer_wins;
 	}
 
-	return (player.score > dealer.score);
+	if (!dealerTurn(dealer, deck)) {
+		std::cout << "The dealer busts!\n";
+		return EndStates::player_wins;
+	}
+
+	if (dealer.score > player.score) {
+		std::cout << "The dealer's " << dealer.score << " beats your " << player.score << "!\n";
+		return EndStates::dealer_wins;
+	}
+
+	if (dealer.score == player.score) {
+		std::cout << "You and the dealer have the same score!\n";
+		return EndStates::tie;
+	}
+
+	return EndStates::player_wins;
 }
 
 int main() {
-	bool status { playBlackJack() };
+	EndStates status { playBlackJack() };
 
-	if (status) {
+	switch (status) {
+	case EndStates::player_wins:
 		std::cout << "You win!\n";
-	} else {
+		break;
+	case EndStates::dealer_wins:
 		std::cout << "You lose!\n";
+		break;
+	case EndStates::tie:
+		std::cout << "It's a tie!\n";
+		break;
+	default:
+		std::cout << "Error handling winner.\n";
+		break;
 	}
 
 	return 0;
