@@ -18,6 +18,25 @@ public:
 	friend Fraction operator*(const Fraction& f1, int x);
 	friend Fraction operator*(int x, const Fraction& f1);
 
+	friend bool operator==(const Fraction& f1, const Fraction& f2) {
+		return (f1.m_numerator == f2.m_numerator) && (f1.m_denomenator == f2.m_denomenator);
+	}
+	friend bool operator!=(const Fraction& f1, const Fraction& f2) {
+		return !(operator==(f1, f2));
+	}
+	friend bool operator<(const Fraction& f1, const Fraction& f2) {
+		return f1.m_numerator * f2.m_denomenator < f2.m_numerator * f1.m_denomenator;
+	}
+	friend bool operator>(const Fraction& f1, const Fraction& f2) {
+		return operator<(f2, f1);
+	}
+	friend bool operator<=(const Fraction& f1, const Fraction& f2) {
+		return !(operator>(f1, f2));
+	}
+	friend bool operator>=(const Fraction& f1, const Fraction& f2) {
+		return !(operator<(f1, f2));
+	}
+
 	friend std::ostream& operator<<(std::ostream& out, const Fraction& f);
 
 	void reduce() {
@@ -98,6 +117,16 @@ int main() {
 
 	std::cout << f8 << " * " << f9 << " is " << f8 * f9 << '\n';
 
+
+	Fraction f10 { 3, 2 };
+	Fraction f11 { 5, 8 };
+
+	std::cout << f10 << ((f10 == f11) ? " == " : " not == ") << f11 << '\n';
+	std::cout << f10 << ((f10 != f11) ? " != " : " not != ") << f11 << '\n';
+	std::cout << f10 << ((f10 < f11) ? " < " : " not < ") << f11 << '\n';
+	std::cout << f10 << ((f10 > f11) ? " > " : " not > ") << f11 << '\n';
+	std::cout << f10 << ((f10 <= f11) ? " <= " : " not <= ") << f11 << '\n';
+	std::cout << f10 << ((f10 >= f11) ? " >= " : " not >= ") << f11 << '\n';
 
 	return 0;
 }
