@@ -158,8 +158,34 @@ std::ostream& operator<<(std::ostream& out, const Board& board) {
 	return out;
 }
 
-int main()
-{
+struct Point {
+	int x {};
+	int y {};
+
+	Point getAdjacentPoint(Direction d) const {
+		switch (d.getType()) {
+		case Direction::up: 	return Point { x, y - 1 };
+		case Direction::down: 	return Point { x, y + 1 };
+		case Direction::left: 	return Point { x - 1, y };
+		case Direction::right: 	return Point { x + 1, y };
+		default: 		break;
+		}
+
+		assert(0 && "Unsupported direction was passed!");
+		return *this;
+	}
+
+	friend bool operator==(const Point& p1, const Point& p2) {
+		return p1.x == p2.x && p1.y == p2.y;
+	}
+
+	friend bool operator!=(const Point& p1, const Point& p2) {
+		return !(p1 == p2);
+	}
+};
+
+/*
+int main() {
 	// step 2
 	Tile tile1{ 10 };
 	Tile tile2{ 8 };
@@ -194,4 +220,20 @@ int main()
 	}
 
 	return 0;
+}
+*/
+
+// temp main for testing Point
+int main()
+{
+    std::cout << std::boolalpha;
+    std::cout << (Point{ 1, 1 }.getAdjacentPoint(Direction::up)    == Point{ 1, 0 }) << '\n';
+    std::cout << (Point{ 1, 1 }.getAdjacentPoint(Direction::down)  == Point{ 1, 2 }) << '\n';
+    std::cout << (Point{ 1, 1 }.getAdjacentPoint(Direction::left)  == Point{ 0, 1 }) << '\n';
+    std::cout << (Point{ 1, 1 }.getAdjacentPoint(Direction::right) == Point{ 2, 1 }) << '\n';
+    std::cout << (Point{ 1, 1 } != Point{ 2, 1 }) << '\n';
+    std::cout << (Point{ 1, 1 } != Point{ 1, 2 }) << '\n';
+    std::cout << !(Point{ 1, 1 } != Point{ 1, 1 }) << '\n';
+
+    return 0;
 }
