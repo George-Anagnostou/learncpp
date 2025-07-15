@@ -10,6 +10,9 @@ public:
 	friend Cents operator+(const Cents& c1, const Cents& c2);
 	friend Cents operator-(const Cents& c1, const Cents& c2);
 
+	// conversion from Cents to int
+	explicit operator int() const { return m_cents; }
+
 	int getCents() const { return m_cents; }
 };
 
