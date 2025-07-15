@@ -57,6 +57,32 @@ std::ostream& operator<<(std::ostream& out, const Direction& d) {
 	return (out << "unknown direction");
 }
 
+struct Point {
+	int x {};
+	int y {};
+
+	Point getAdjacentPoint(Direction d) const {
+		switch (d.getType()) {
+		case Direction::up: 	return Point { x, y - 1 };
+		case Direction::down: 	return Point { x, y + 1 };
+		case Direction::left: 	return Point { x - 1, y };
+		case Direction::right: 	return Point { x + 1, y };
+		default: 		break;
+		}
+
+		assert(0 && "Unsupported direction was passed!");
+		return *this;
+	}
+
+	friend bool operator==(const Point& p1, const Point& p2) {
+		return p1.x == p2.x && p1.y == p2.y;
+	}
+
+	friend bool operator!=(const Point& p1, const Point& p2) {
+		return !(p1 == p2);
+	}
+};
+
 namespace UserInput {
 	bool isValidCommand(char ch) {
 		return ch == 'w'
@@ -141,6 +167,38 @@ private:
 public:
 	Board() = default;
 
+	bool isValidMove(const Point& p) {
+		return (p.x >= 0 && p.x < s_size)
+		    && (p.y >= 0 && p.y < s_size);
+	}
+
+	Point findEmptyTile() const {
+		for (int y = 0; y < s_size; ++y) {
+			for (int x = 0; x < s_size; ++x) {
+				if (m_tiles[y][x].isEmpty()) {
+					return Point { x, y };
+				}
+			}
+		}
+
+		assert(0 && "There is no empty tile in the board!");
+		return Point { -1, -1 };
+	}
+
+	void swapTiles(Point p1, Point p2) {
+		std::swap(m_tiles[p1.y][p1.x], m_tiles[p2.y][p2.x]);
+	}
+
+	bool moveTile(Direction d) {
+		Point emptyTile { findEmptyTile() };
+		Point adjacentTile { emptyTile.getAdjacentPoint(d) };
+		if (!isValidMove(adjacentTile)) {
+			return false;
+		}
+		swapTiles(emptyTile, adjacentTile);
+		return true;
+	}
+
 	friend std::ostream& operator<<(std::ostream& out, const Board& board);
 };
 
@@ -158,33 +216,6 @@ std::ostream& operator<<(std::ostream& out, const Board& board) {
 	return out;
 }
 
-struct Point {
-	int x {};
-	int y {};
-
-	Point getAdjacentPoint(Direction d) const {
-		switch (d.getType()) {
-		case Direction::up: 	return Point { x, y - 1 };
-		case Direction::down: 	return Point { x, y + 1 };
-		case Direction::left: 	return Point { x - 1, y };
-		case Direction::right: 	return Point { x + 1, y };
-		default: 		break;
-		}
-
-		assert(0 && "Unsupported direction was passed!");
-		return *this;
-	}
-
-	friend bool operator==(const Point& p1, const Point& p2) {
-		return p1.x == p2.x && p1.y == p2.y;
-	}
-
-	friend bool operator!=(const Point& p1, const Point& p2) {
-		return !(p1 == p2);
-	}
-};
-
-/*
 int main() {
 	// step 2
 	Tile tile1{ 10 };
@@ -217,13 +248,18 @@ int main() {
 			std::cout << "\nBye!\n\n";
 			return 0;
 		}
+
+		Direction d { UserInput::charToDirection(input) };
+		if (board.moveTile(d)) {
+			std::cout << board;
+		}
 	}
 
 	return 0;
 }
-*/
 
-// temp main for testing Point
+// temp main for testing Point from step 6
+/*
 int main()
 {
     std::cout << std::boolalpha;
@@ -237,3 +273,4 @@ int main()
 
     return 0;
 }
+*/
