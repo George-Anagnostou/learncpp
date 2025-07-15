@@ -140,6 +140,7 @@ public:
 	int getNum() const { return m_value; }
 
 	friend std::ostream& operator<<(std::ostream& out, const Tile& t);
+	friend bool operator==(const Tile& t1, const Tile& t2);
 };
 
 std::ostream& operator<<(std::ostream& out, const Tile& t) {
@@ -152,6 +153,17 @@ std::ostream& operator<<(std::ostream& out, const Tile& t) {
 	}
 
 	return out;
+}
+
+bool operator==(const Tile& t1, const Tile& t2) {
+	if (t1.getNum() == t2.getNum()) {
+		return true;
+	}
+	return false;
+}
+
+bool operator!=(const Tile& t1, const Tile& t2) {
+	return !(t1 == t2);
 }
 
 class Board {
@@ -199,7 +211,24 @@ public:
 		return true;
 	}
 
+	void randomize() {
+		for (int i = 0; i < 1000; ++i) {
+			if (!moveTile(Direction::getRandomDirection())) {
+				continue;
+			}
+		}
+	}
+
+	bool playerWon() const {
+		static Board s_solved {};
+		if (*this == s_solved) {
+			return true;
+		}
+		return false;
+	}
+
 	friend std::ostream& operator<<(std::ostream& out, const Board& board);
+	friend bool operator==(const Board& b1, const Board& b2);
 };
 
 std::ostream& operator<<(std::ostream& out, const Board& board) {
@@ -216,31 +245,23 @@ std::ostream& operator<<(std::ostream& out, const Board& board) {
 	return out;
 }
 
+bool operator==(const Board& b1, const Board& b2) {
+	assert(b1.s_size == b2.s_size && "Boards sizes are incompatible!");
+	for (int y = 0; y < b1.s_size; ++y) {
+		for (int x = 0; x < b1.s_size; ++x) {
+			if (b1.m_tiles[y][x] != b2.m_tiles[y][x]) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 int main() {
-	// step 2
-	Tile tile1{ 10 };
-	Tile tile2{ 8 };
-	Tile tile3{ 0 }; // the missing tile
-	Tile tile4{ 1 };
-
-	std::cout << "0123456789ABCDEF\n"; // to make it easy to see how many spaces are in the next line
-	std::cout << tile1 << tile2 << tile3 << tile4 << '\n';
-
-	std::cout << std::boolalpha << tile1.isEmpty() << ' ' << tile3.isEmpty() << '\n';
-	std::cout << "Tile 2 has number: " << tile2.getNum() << "\nTile 4 has number: " << tile4.getNum() << '\n';
-
-	
-	// step 3
 	Board board {};
+	board.randomize();
 	std::cout << board;
 
-	// step 5
-	std::cout << "Generating random direction... " << Direction::getRandomDirection() << '\n';
-	std::cout << "Generating random direction... " << Direction::getRandomDirection() << '\n';
-	std::cout << "Generating random direction... " << Direction::getRandomDirection() << '\n';
-	std::cout << "Generating random direction... " << Direction::getRandomDirection() << '\n';
-
-	// step 4
 	while (true) {
 		char input { UserInput::getCommandFromUser() };
 		std::cout << "Valid command: " << input << '\n';
@@ -253,24 +274,12 @@ int main() {
 		if (board.moveTile(d)) {
 			std::cout << board;
 		}
+
+		if (board.playerWon()) {
+			std::cout << "\n\nYou won!\n\n";
+			return 0;
+		}
 	}
 
 	return 0;
 }
-
-// temp main for testing Point from step 6
-/*
-int main()
-{
-    std::cout << std::boolalpha;
-    std::cout << (Point{ 1, 1 }.getAdjacentPoint(Direction::up)    == Point{ 1, 0 }) << '\n';
-    std::cout << (Point{ 1, 1 }.getAdjacentPoint(Direction::down)  == Point{ 1, 2 }) << '\n';
-    std::cout << (Point{ 1, 1 }.getAdjacentPoint(Direction::left)  == Point{ 0, 1 }) << '\n';
-    std::cout << (Point{ 1, 1 }.getAdjacentPoint(Direction::right) == Point{ 2, 1 }) << '\n';
-    std::cout << (Point{ 1, 1 } != Point{ 2, 1 }) << '\n';
-    std::cout << (Point{ 1, 1 } != Point{ 1, 2 }) << '\n';
-    std::cout << !(Point{ 1, 1 } != Point{ 1, 1 }) << '\n';
-
-    return 0;
-}
-*/
